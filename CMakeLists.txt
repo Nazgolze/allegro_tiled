@@ -3,7 +3,7 @@ project(allegro_tiled)
 
 # Allows us to get CMake stuff from other places
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
+#set(CMAKE_BUILD_TYPE Debug)
 # Utility functions
 include(Utils)
 
@@ -32,10 +32,10 @@ else()
 	)
 endif()
 
-pkg_check_modules(
-	GLIB REQUIRED
-	glib-2.0
-)
+#pkg_check_modules(
+#	GLIB REQUIRED
+#	glib-2.0
+#)
 
 pkg_check_modules(
 	LIBXML REQUIRED

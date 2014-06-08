@@ -41,7 +41,7 @@ static inline char lookup_tile(ALLEGRO_MAP_LAYER *layer, int x, int y)
  */
 char al_get_single_tile_id(ALLEGRO_MAP_LAYER *layer, int x, int y)
 {
-	if (layer->type != TILE_LAYER) {
+	if(layer->type != TILE_LAYER) {
 		return 0;
 	}
 
@@ -75,10 +75,10 @@ ALLEGRO_MAP_TILE **al_get_tiles(ALLEGRO_MAP *map, int x, int y, int *length)
 	ALLEGRO_MAP_TILE **results = (ALLEGRO_MAP_TILE**)al_malloc(sizeof(ALLEGRO_MAP_TILE*) * (map->tile_layer_count));
 
 	int i;
-	GSList *layers = map->tile_layers;
+	SList *layers = map->tile_layers;
 	for (i = 0; layers; i++) {
 		ALLEGRO_MAP_LAYER *layer = (ALLEGRO_MAP_LAYER*)layers->data;
-		layers = g_slist_next(layers);
+		layers = slist_next(layers);
 		results[i] = al_get_single_tile(map, layer, x, y);
 	}
 
@@ -97,17 +97,17 @@ ALLEGRO_MAP_TILE **al_get_tiles(ALLEGRO_MAP *map, int x, int y, int *length)
 ALLEGRO_MAP_OBJECT **al_get_objects_for_name(ALLEGRO_MAP_LAYER *layer, char *name, int *length)
 {
 	(*length) = 0;
-	if (layer->type != OBJECT_LAYER) {
+	if(layer->type != OBJECT_LAYER) {
 		return NULL;
 	}
 
-	GSList *matches = NULL;
-	GSList *objects = layer->objects;
+	SList *matches = NULL;
+	SList *objects = layer->objects;
 	while (objects) {
 		ALLEGRO_MAP_OBJECT *object = (ALLEGRO_MAP_OBJECT*)objects->data;
-		objects = g_slist_next(objects);
-		if (!strcmp(object->name, name)) {
-			matches = g_slist_prepend(matches, object);
+		objects = slist_next(objects);
+		if(streq(object->name, name)) {
+			matches = slist_prepend(matches, object);
 			(*length)++;
 		}
 	}
@@ -116,10 +116,10 @@ ALLEGRO_MAP_OBJECT **al_get_objects_for_name(ALLEGRO_MAP_LAYER *layer, char *nam
 	int i;
 	for (i = 0; i<(*length); i++) {
 		results[i] = matches->data;
-		matches = g_slist_next(matches);
+		matches = slist_next(matches);
 	}
 
-	g_slist_free(matches);
+	slist_free(matches);
 	return results;
 }
 
@@ -134,18 +134,18 @@ ALLEGRO_MAP_OBJECT **al_get_objects_for_name(ALLEGRO_MAP_LAYER *layer, char *nam
 ALLEGRO_MAP_OBJECT **al_get_objects(ALLEGRO_MAP_LAYER *layer, int *length)
 {
 	(*length) = 0;
-	if (layer->type != OBJECT_LAYER) {
+	if(layer->type != OBJECT_LAYER) {
 		return NULL;
 	}
 
 	(*length) = layer->object_count;
 	ALLEGRO_MAP_OBJECT **results = (ALLEGRO_MAP_OBJECT**)al_malloc(sizeof(ALLEGRO_MAP_OBJECT*) * (*length));
 
-	GSList *objects = layer->objects;
+	SList *objects = layer->objects;
 	int i;
 	for (i = 0; i<(*length); i++) {
 		results[i] = objects->data;
-		objects = g_slist_next(objects);
+		objects = slist_next(objects);
 	}
 
 	return results;
@@ -172,11 +172,19 @@ bool flipped_vertically(ALLEGRO_MAP_LAYER *layer, int x, int y)
  */
 ALLEGRO_MAP_TILE *al_get_tile_for_id(ALLEGRO_MAP *map, char id)
 {
-	if (id == 0) {
+	if(id == 0) {
 		return NULL;
 	}
-
-	return (ALLEGRO_MAP_TILE*)g_hash_table_lookup(map->tiles, GINT_TO_POINTER(id));
+	int meh = 0;
+	meh = (int)id;
+	void *ret = rb_tree_lookup(map->tiles, &meh);
+#if 0
+	if(!ret) {
+		rb_tree_preorder_print(map->tiles->root);
+		printf("id = %d", (int)id);
+	}
+#endif
+	return (ALLEGRO_MAP_TILE *)ret;// (ALLEGRO_MAP_TILE*)rb_tree_lookup(map->tiles, &id);
 }
 
 /*
@@ -184,8 +192,8 @@ ALLEGRO_MAP_TILE *al_get_tile_for_id(ALLEGRO_MAP *map, char id)
  */
 char *al_get_tile_property(ALLEGRO_MAP_TILE *tile, char *name, char *def)
 {
-	if (tile) {
-		char *value = g_hash_table_lookup(tile->properties, name);
+	if(tile) {
+		char *value = rb_tree_lookup(tile->properties, name);
 		return value ? value : def;
 	}
 
@@ -197,8 +205,8 @@ char *al_get_tile_property(ALLEGRO_MAP_TILE *tile, char *name, char *def)
  */
 char *al_get_object_property(ALLEGRO_MAP_OBJECT *object, char *name, char *def)
 {
-	if (object) {
-		char *value = g_hash_table_lookup(object->properties, name);
+	if(object) {
+		char *value = rb_tree_lookup(object->properties, name);
 		return value ? value : def;
 	}
 
@@ -210,13 +218,13 @@ char *al_get_object_property(ALLEGRO_MAP_OBJECT *object, char *name, char *def)
  */
 ALLEGRO_MAP_LAYER *al_get_layer_for_name(ALLEGRO_MAP *map, char *name)
 {
-	GSList *layers = map->layers;
+	SList *layers = map->layers;
 	while (layers) {
 		ALLEGRO_MAP_LAYER *layer = (ALLEGRO_MAP_LAYER*)layers->data;
-		if (!strcmp(layer->name, name)) {
+		if(streq(layer->name, name)) {
 			return layer;
 		} else {
-			layers = g_slist_next(layers);
+			layers = slist_next(layers);
 		}
 	}
 
@@ -228,16 +236,16 @@ ALLEGRO_MAP_LAYER *al_get_layer_for_name(ALLEGRO_MAP *map, char *name)
  */
 ALLEGRO_MAP_OBJECT *al_get_object_for_name(ALLEGRO_MAP *map, char *name)
 {
-	GSList *layers = map->layers;
+	SList *layers = map->layers;
 	while (layers) {
 		ALLEGRO_MAP_LAYER *layer = (ALLEGRO_MAP_LAYER*)layers->data;
-		layers = g_slist_next(layers);
+		layers = slist_next(layers);
 
-		GSList *objects = layer->objects;
+		SList *objects = layer->objects;
 		while (objects) {
 			ALLEGRO_MAP_OBJECT *object = (ALLEGRO_MAP_OBJECT*)objects->data;
-			objects = g_slist_next(objects);
-			if (!strcmp(object->name, name)) {
+			objects = slist_next(objects);
+			if(streq(object->name, name)) {
 				return object;
 			}
 		}

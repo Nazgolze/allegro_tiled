@@ -26,6 +26,7 @@
  * Accessor methods for getting information from a struct.
  */
 
+#include "common.h"
 #include "data.h"
 
 /*
@@ -74,13 +75,13 @@ char *al_get_map_orientation(ALLEGRO_MAP *map)
  */
 ALLEGRO_MAP_LAYER *al_get_map_layer(ALLEGRO_MAP *map, char *name)
 {
-	GSList *layers = map->layers;
+	SList *layers = map->layers;
 	while (layers) {
 		ALLEGRO_MAP_LAYER *layer = (ALLEGRO_MAP_LAYER*)layers->data;
-		if (!strcmp(layer->name, name)) {
+		if(streq(layer->name, name)) {
 			return layer;
 		}
-		layers = g_slist_next(layers);
+		layers = slist_next(layers);
 	}
 
 	return NULL;
@@ -183,46 +184,46 @@ bool al_get_object_visible(ALLEGRO_MAP_OBJECT *object)
 	return object->visible;
 }
 
-void _al_free_tile(gpointer data)
+void _al_free_tile(void *data)
 {
 	ALLEGRO_MAP_TILE *tile = (ALLEGRO_MAP_TILE*)data;
-	g_hash_table_unref(tile->properties);
+	rb_tree_unref(tile->properties);
 	al_destroy_bitmap(tile->bitmap);
 	al_free(tile);
 }
 
-void _al_free_tileset(gpointer data)
+void _al_free_tileset(void *data)
 {
 	ALLEGRO_MAP_TILESET *tileset = (ALLEGRO_MAP_TILESET*)data;
 	al_free(tileset->name);
 	al_free(tileset->source);
-	g_slist_free_full(tileset->tiles, &_al_free_tile);
+	slist_free_full(tileset->tiles, &_al_free_tile);
 	al_destroy_bitmap(tileset->bitmap);
 	al_free(tileset);
 }
 
-void _al_free_object(gpointer data)
+void _al_free_object(void *data)
 {
 	ALLEGRO_MAP_OBJECT *object = (ALLEGRO_MAP_OBJECT*)data;
-	if (!object) {
+	if(!object) {
 		return;
 	}
 	al_free(object->name);
 	al_free(object->type);
-	g_hash_table_unref(object->properties);
+	rb_tree_unref(object->properties);
 	al_free(object);
 }
 
-void _al_free_layer(gpointer data)
+void _al_free_layer(void *data)
 {
 	ALLEGRO_MAP_LAYER *layer = (ALLEGRO_MAP_LAYER*)data;
 	al_free(layer->name);
-	if (layer->type == TILE_LAYER) {
+	if(layer->type == TILE_LAYER) {
 		al_free(layer->data);
-	} else if (layer->type == OBJECT_LAYER) {
-		g_slist_free_full(layer->objects, &_al_free_object);
+	} else if(layer->type == OBJECT_LAYER) {
+		slist_free_full(layer->objects, &_al_free_object);
 	}
-	g_hash_table_unref(layer->properties);
+	rb_tree_unref(layer->properties);
 	al_free(layer);
 }
 
@@ -232,8 +233,8 @@ void _al_free_layer(gpointer data)
 void al_free_map(ALLEGRO_MAP *map)
 {
 	al_free(map->orientation);
-	g_slist_free_full(map->tilesets, &_al_free_tileset);
-	g_slist_free_full(map->layers, &_al_free_layer);
-	g_hash_table_unref(map->tiles);
+	slist_free_full(map->tilesets, &_al_free_tileset);
+	slist_free_full(map->layers, &_al_free_layer);
+	rb_tree_unref(map->tiles);
 	al_free(map);
 }

@@ -44,6 +44,7 @@ bool flipped_vertically(ALLEGRO_MAP_LAYER *layer, int x, int y);
 char *al_get_tile_property(ALLEGRO_MAP_TILE *tile, char *name, char *def);
 char *al_get_object_property(ALLEGRO_MAP_OBJECT *object, char *name, char *def);
 ALLEGRO_MAP_LAYER *al_get_layer_for_name(ALLEGRO_MAP *map, char *name);
+//ALLEGRO_MAP_TILE *al_get_tile_for_id(ALLEGRO_MAP *map, char id);
 
 int al_map_get_pixel_width(ALLEGRO_MAP *map);
 int al_map_get_pixel_height(ALLEGRO_MAP *map);

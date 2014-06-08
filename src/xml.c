@@ -32,17 +32,17 @@
  * Given a parent XML node and the name of all desired children,
  * returns a list of all children with that name
  */
-GSList *get_children_for_name(xmlNode *parent, char *name)
+SList *get_children_for_name(xmlNode *parent, char *name)
 {
-	GSList *list = NULL;
-
-	if (!parent->children)
+	SList *list = NULL;
+	
+	if(!parent->children)
 		return list;
 
 	xmlNode *child = parent->children->next;
 	while (child) {
-		if (!strcmp((const char*)child->name, name)) {
-			list = g_slist_prepend(list, child);
+		if(streq((const char*)child->name, name)) {
+			list = slist_prepend(list, child);
 		}
 
 		child = child->next;
@@ -57,17 +57,17 @@ GSList *get_children_for_name(xmlNode *parent, char *name)
  * but their order needs to be preserved. This method is a workaround
  * for that.
  */
-GSList *get_children_for_either_name(xmlNode *parent, char *name1, char *name2)
+SList *get_children_for_either_name(xmlNode *parent, char *name1, char *name2)
 {
-	GSList *list = NULL;
-
-	if (!parent->children)
+	SList *list = NULL;
+	
+	if(!parent->children)
 		return list;
 
 	xmlNode *child = parent->children->next;
 	while (child) {
-		if (!strcmp((const char*)child->name, name1) || !strcmp((const char*)child->name, name2)) {
-			list = g_slist_prepend(list, child);
+		if(streq((const char*)child->name, name1) || streq((const char*)child->name, name2)) {
+			list = slist_prepend(list, child);
 		}
 
 		child = child->next;
@@ -82,13 +82,13 @@ GSList *get_children_for_either_name(xmlNode *parent, char *name1, char *name2)
  */
 xmlNode *get_first_child_for_name(xmlNode *parent, char *name)
 {
-	if (!parent->children)
+	if(!parent->children)
 		return NULL;
 
 	xmlNode *child = parent->children->next;
 
-	while  (child != NULL) {
-		if (!strcmp((const char*)child->name, name)) {
+	while	(child != NULL) {
+		if(streq((const char*)child->name, name)) {
 			return child;
 		} else {
 			child = child->next;
@@ -107,7 +107,7 @@ char *get_xml_attribute(xmlNode *node, char *name)
 	xmlAttr *attrs = node->properties;
 
 	while (attrs != NULL) {
-		if (!strcmp((const char*)attrs->name, name))
+		if(streq((const char*)attrs->name, name))
 			return (char *)attrs->children->content;
 
 		attrs = attrs->next;

@@ -30,7 +30,7 @@
 
 static void _al_draw_orthogonal_tile_layer(ALLEGRO_MAP_LAYER *layer, ALLEGRO_MAP *map, ALLEGRO_COLOR tint, float sx, float sy, float sw, float sh, float dx, float dy, int flags)
 {
-	if (!layer->visible) {
+	if(!layer->visible) {
 		return;
 	}
 
@@ -49,15 +49,15 @@ static void _al_draw_orthogonal_tile_layer(ALLEGRO_MAP_LAYER *layer, ALLEGRO_MAP
 		for (mx = xstart; mx <= xend; mx++) {
 			ALLEGRO_MAP_TILE *tile = al_get_single_tile(map, layer, mx, my);
 
-			if (!tile) {
+			if(!tile) {
 				continue;
 			}
 
 			float x = mx*(map->tile_width) - sx + dx;
 			float y = my*(map->tile_height) - sy + dy;
 
-			if (flipped_horizontally(layer, mx, my)) flags |= ALLEGRO_FLIP_HORIZONTAL;
-			if (flipped_vertically(layer, mx, my)) flags |= ALLEGRO_FLIP_VERTICAL;
+			if(flipped_horizontally(layer, mx, my)) flags |= ALLEGRO_FLIP_HORIZONTAL;
+			if(flipped_vertically(layer, mx, my)) flags |= ALLEGRO_FLIP_VERTICAL;
 
 			al_draw_tinted_bitmap(tile->bitmap, color, x, y, flags);
 		}
@@ -68,7 +68,7 @@ static void _al_draw_orthogonal_tile_layer(ALLEGRO_MAP_LAYER *layer, ALLEGRO_MAP
 
 static void _al_draw_orthogonal_object_layer(ALLEGRO_MAP_LAYER *layer, ALLEGRO_MAP *map, ALLEGRO_COLOR tint, float sx, float sy, float sw, float sh, float dx, float dy, int flags)
 {
-	if (!layer->visible) {
+	if(!layer->visible) {
 		return;
 	}
 
@@ -78,14 +78,14 @@ static void _al_draw_orthogonal_object_layer(ALLEGRO_MAP_LAYER *layer, ALLEGRO_M
 
 	// defer rendering until everything is drawn
 	al_hold_bitmap_drawing(true);
-
-	GSList *objects = layer->objects;
+	
+	SList *objects = layer->objects;
 	while (objects) {
 		ALLEGRO_MAP_OBJECT *object = (ALLEGRO_MAP_OBJECT*)objects->data;
-		objects = g_slist_next(objects);
+		objects = slist_next(objects);
 
 		// no need to draw invisible objects
-		if (!object->bitmap) {
+		if(!object->bitmap) {
 			continue;
 		}
 
@@ -93,7 +93,7 @@ static void _al_draw_orthogonal_object_layer(ALLEGRO_MAP_LAYER *layer, ALLEGRO_M
 		int y = object->y - sy;
 
 		// make sure it's on-screen; if it's not, don't draw it
-		if ((x + object->width) < 0 || x > sw || y < 0 || (y - object->height) > sh) {
+		if((x + object->width) < 0 || x > sw || y < 0 || (y - object->height) > sh) {
 			continue;
 		}
 
@@ -105,13 +105,13 @@ static void _al_draw_orthogonal_object_layer(ALLEGRO_MAP_LAYER *layer, ALLEGRO_M
 
 static void _al_draw_orthogonal_map(ALLEGRO_MAP *map, ALLEGRO_COLOR tint, float sx, float sy, float sw, float sh, float dx, float dy, int flags)
 {
-	GSList *layers = map->layers;
+	SList *layers = map->layers;
 	while (layers) {
 		ALLEGRO_MAP_LAYER *layer = (ALLEGRO_MAP_LAYER*)layers->data;
-		layers = g_slist_next(layers);
-		if (layer->type == TILE_LAYER) {
+		layers = slist_next(layers);
+		if(layer->type == TILE_LAYER) {
 			_al_draw_orthogonal_tile_layer(layer, map, tint, sx, sy, sw, sh, dx, dy, flags);
-		} else if (layer->type == OBJECT_LAYER) {
+		} else if(layer->type == OBJECT_LAYER) {
 			_al_draw_orthogonal_object_layer(layer, map, tint, sx, sy, sw, sh, dx, dy, flags);
 		}
 	}
@@ -123,7 +123,7 @@ static void _al_draw_orthogonal_map(ALLEGRO_MAP *map, ALLEGRO_COLOR tint, float 
  */
 void al_draw_tinted_map(ALLEGRO_MAP *map, ALLEGRO_COLOR tint, float dx, float dy, int flags)
 {
-	if (!strcmp(map->orientation, "orthogonal")) {
+	if(streq(map->orientation, "orthogonal")) {
 		_al_draw_orthogonal_map(map, tint, 0, 0, map->width * map->tile_width, map->height * map->tile_width, dx, dy, flags);
 	} else {
 		fprintf(stderr, "Error: can't draw map with orientation \"%s\"\n", map->orientation);
@@ -136,7 +136,7 @@ void al_draw_tinted_map(ALLEGRO_MAP *map, ALLEGRO_COLOR tint, float dx, float dy
  */
 void al_draw_tinted_map_region(ALLEGRO_MAP *map, ALLEGRO_COLOR tint, float sx, float sy, float sw, float sh, float dx, float dy, int flags)
 {
-	if (!strcmp(map->orientation, "orthogonal")) {
+	if(streq(map->orientation, "orthogonal")) {
 		_al_draw_orthogonal_map(map, tint, sx, sy, sw, sh, dx, dy, flags);
 	} else {
 		fprintf(stderr, "Error: can't draw map with orientation \"%s\"\n", map->orientation);
@@ -180,7 +180,7 @@ void al_draw_tile_layer_for_name(ALLEGRO_MAP *map, char *name, float dx, float d
  */
 void al_draw_tinted_tile_layer_region_for_name(ALLEGRO_MAP *map, char *name, ALLEGRO_COLOR tint, float sx, float sy, float sw, float sh, float dx, float dy, int flags)
 {
-	if (!strcmp(map->orientation, "orthogonal")) {
+	if(streq(map->orientation, "orthogonal")) {
 		_al_draw_orthogonal_tile_layer(al_get_layer_for_name(map, name), map, tint, sx, sy, sw, sh, dx, dy, flags);
 	} else {
 		fprintf(stderr, "Error: can't draw layer with orientation \"%s\"\n", map->orientation);
