@@ -36,7 +36,6 @@ Make sure the following dependencies are installed:
  * allegro\_image
  * xml2
  * zlib
- * glib
  * cmake
 
 Dependencies in OSX:
@@ -47,7 +46,6 @@ Make sure the following dependencies are installed using [Homebrew](http://brew.
  * allegro5
  * libxml2
  * zlib
- * glib
  * cmake
 
 Compiling:
