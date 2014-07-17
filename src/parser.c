@@ -423,6 +423,7 @@ ALLEGRO_MAP *al_open_map(const char *dir, const char *filename)
 				layer->objects = slist_prepend(layer->objects, object);
 				layer->object_count++;
 			}
+			slist_free(objects);
 			map->object_layer_count++;
 			map->object_layers = slist_prepend(map->object_layers, layer);
 		} else {
@@ -460,6 +461,6 @@ ALLEGRO_MAP *al_open_map(const char *dir, const char *filename)
 
 	xmlFreeDoc(doc);
 	al_change_directory(al_path_cstr(cwd, ALLEGRO_NATIVE_PATH_SEP));
-
+	al_destroy_path(cwd);
 	return map;
 }

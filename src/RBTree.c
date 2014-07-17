@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static int reversed = 0;
-
 static const char black = 0;
 static const char red = 1;
 
@@ -245,16 +243,24 @@ static RBNode *_successor(RBNode *node)
 	while(ret->left) {
 		ret = ret->left;
 	}
+
+	if(ret->right) {
+		ret = _successor(ret);
+	}
 	return ret;
 }
 
 static void _rb_free_node(RBTree *tree, RBNode *node)
 {
 	if(tree->key_destroy_func) {
-		tree->key_destroy_func(node->key);
+		if(node->key) {
+			tree->key_destroy_func(node->key);
+		}
 	}
 	if(tree->data_destroy_func) {
-		tree->data_destroy_func(node->data);
+		if(node->data) {
+			tree->data_destroy_func(node->data);
+		}
 	}
 }
 
@@ -356,10 +362,12 @@ static void _delete_case1(RBTree *tree, RBNode *node)
 
 static bool _delete_one_child(RBTree *tree, RBNode *node, RBNode *child)
 {
-	if(node == node->parent->left) {
-		node->parent->left = child;
-	} else if(node == node->parent->right) {
-		node->parent->right = child;
+	if(node->parent) {
+		if(node == node->parent->left) {
+			node->parent->left = child;
+		} else if(node == node->parent->right) {
+			node->parent->right = child;
+		}
 	}
 	child->parent = node->parent; 
 	if((node->color == red) ||
@@ -367,6 +375,9 @@ static bool _delete_one_child(RBTree *tree, RBNode *node, RBNode *child)
 		child->color = black;
 	} else {
 		_delete_case1(tree, child);
+	}
+	if(tree->root == node) {
+		tree->root = child;
 	}
 	_rb_free_node(tree, node);
 	al_free(node);
@@ -434,27 +445,27 @@ void rb_tree_preorder_print(RBNode *node)
 		return;
 	}
 
-	//char *key = node->key;
-	int key = *(int *)node->key;
+	char *key = node->key;
+	//int key = *(int *)node->key;
 
 	if(!node->parent) {
-		printf("root: %d\ncolor: %s\n", key, node->color ? "red" : "black");
-		printf("%d: %p\n", key, node);
-		printf("%d->left: %p\n", key, node->left);
-		printf("%d->right: %p\n", key, node->right);
-		printf("%d->parent: %p\n", key, node->parent);
+		printf("root: %s\ncolor: %s\n", key, node->color ? "red" : "black");
+		printf("%s: %p\n", key, node);
+		printf("%s->left: %p\n", key, node->left);
+		printf("%s->right: %p\n", key, node->right);
+		printf("%s->parent: %p\n", key, node->parent);
 	} else if(node == node->parent->left) {
-		printf("left: %d\ncolor: %s\n", key, node->color ? "red" : "black");
-		printf("%d: %p\n", key, node);
-		printf("%d->left: %p\n", key, node->left);
-		printf("%d->right: %p\n", key, node->right);
-		printf("%d->parent: %p\n", key, node->parent);
+		printf("left: %s\ncolor: %s\n", key, node->color ? "red" : "black");
+		printf("%s: %p\n", key, node);
+		printf("%s->left: %p\n", key, node->left);
+		printf("%s->right: %p\n", key, node->right);
+		printf("%s->parent: %p\n", key, node->parent);
 	} else {
-		printf("right: %d\ncolor: %s\n", key, node->color ? "red" : "black");
-		printf("%d: %p\n", key, node);
-		printf("%d->left: %p\n", key, node->left);
-		printf("%d->right: %p\n", key, node->right);
-		printf("%d->parent: %p\n", key, node->parent);
+		printf("right: %s\ncolor: %s\n", key, node->color ? "red" : "black");
+		printf("%s: %p\n", key, node);
+		printf("%s->left: %p\n", key, node->left);
+		printf("%s->right: %p\n", key, node->right);
+		printf("%s->parent: %p\n", key, node->parent);
 	}
 	rb_tree_preorder_print(node->left);
 	rb_tree_preorder_print(node->right);
@@ -491,6 +502,9 @@ void rb_tree_ref(RBTree *tree)
 
 void rb_tree_unref(RBTree *tree)
 {
+	if(!tree) {
+		return;
+	}
 	tree->ref_count--;
 	if(tree->ref_count < 1) {
 		rb_tree_delete(tree);
